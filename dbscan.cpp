@@ -74,10 +74,6 @@ namespace NWUClustering
 				m_parents[j] = root;
 				j = tmp;
 			}
-			//m_parents[i] = root;
-			// count the number of vertex in this tree
-			//cout << "root: " << root << endl;
-			//cout << "clusters[" << root << "]: " << clusters[root] << endl;
 			clusters[root]++;
 		}
 		//cout << "clusters" << endl;
@@ -90,31 +86,18 @@ namespace NWUClustering
 				clusters[i] = 0;
 				noise++;
 			}
-			else if(clusters[i] >= m_minPts) // tried clusters[i] > 4 **change this line everytime you change minimum number of points to be cluster **
-				//use min pts variable instead of hard coding
+			else if(clusters[i] >= m_minPts)
 			// This conditional statement determines what is and is not considered a cluster
 			// If it's greater than this number than it will be counted as a cluster
 			{
-				// get the size of cluster count: this will happen only if i is a root
-				//cout << "clusters[" << i << "] is " << clusters[i] << endl; ***********
-				//cout << "Value of clusters[" << i << "] is: " << clusters[i] << endl; 
 				count++;
-				//cout << "Value of count: " << count << endl; 
 				sum_points += clusters[i];
 				clusters[i] = count;
 			}
-			// skip if i is not a root
 		}
-		// write point id and cluster ids to file
-	//	for(i = 0; i < m_pts->m_i_num_points; i++)
-	//	{
-			//for (j = 0; j < m_pts->m_i_dims; j++)     leave commented out
-            		//	o << " " << m_pts->m_points[i][j];	 leave commented out
-			//o << i << " " << clusters[m_parents[i]] << endl; This was the only one not commented out
-	//	}
-		//cout << "Total points " << noise + sum_points << " pt_in_cls " << sum_points << " noise " << noise << endl;
-		//cout << "Number of clusters: " << count << endl;
-		//o << "Total points " << noise + sum_points << " pt_in_cls " << sum_points << " noise " << noise << endl;
+		cout << "Total points " << noise + sum_points << " pt_in_cls " << sum_points << " noise " << noise << endl;
+		cout << "Number of clusters: " << count << endl;
+		o << "Total points " << noise + sum_points << " pt_in_cls " << sum_points << " noise " << noise << endl;
 		o << "Number of clusters: " << count << endl;
 		clusters.clear();
 	}
