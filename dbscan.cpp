@@ -181,10 +181,10 @@ namespace NWUClustering
 				dbs.m_kdtree->r_nearest_around_point(sid, 0, dbs.m_epsSquare, ne);
 				if(ne.size() >= dbs.m_minPts){
 					qualitypoints++;
+					growing_points.push_back(sid); // adds the point to the growing points vector
+					dbs.m_member[sid] = 1; // marks the point as a member of a cluster
 				}	
 				// tid is the thread number, and sid is the index of the point
-				growing_points.push_back(sid); // adds the point to the growing points vector
-				dbs.m_member[sid] = 1; // marks the point as a member of a cluster
 				
 				//dbs.m_corepoint
 			}
