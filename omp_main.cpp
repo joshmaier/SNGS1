@@ -99,6 +99,7 @@ int main(int argc, char** argv)
 	run_dbscan_algo_uf(dbs);
 	time = omp_get_wtime() - start;
 	outputfile << "DBSCAN (total) took " << time << " seconds." << endl;
+	cout << "DBSCAN (total) took " << time << " seconds." << endl;
 	dbs.writeClusters_uf(outputfile);
 	outputfile << endl;
 	

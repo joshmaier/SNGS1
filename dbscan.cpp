@@ -93,7 +93,13 @@ namespace NWUClustering
 				count++;
 				sum_points += clusters[i];
 				clusters[i] = count;
+
+				cout << clusters[i] << ": " << i << endl;
 			}
+		}
+		for(i = 0; i < m_pts->m_i_num_points; i++)
+		{
+			o << i << " " << clusters[m_parents[i]] << endl; //This was the only one not commented out
 		}
 		cout << "Total points " << noise + sum_points << " pt_in_cls " << sum_points << " noise " << noise << endl;
 		cout << "Number of clusters: " << count << endl;
@@ -106,7 +112,7 @@ namespace NWUClustering
 
 	void run_dbscan_algo_uf(ClusteringAlgo& dbs)
 	{			
-		int tid, i, pid, j, k, npid, root, root1, root2, sid, h, test;
+		int tid, i, pid, j, k, npid, root, root1, root2, sid, h, test=0;
 		srand(time(NULL));
 
         // initialize some parameters
@@ -170,6 +176,7 @@ namespace NWUClustering
 
 					sid = (*ind)[(rand() % sch) + (sch * tid)]; // generates random index in the range of each thread's set of data points
 					dbs.m_kdtree->r_nearest_around_point(sid, 0, dbs.m_epsSquare, ne);
+					test += 1;
 						
 				}while(ne.size() < dbs.m_minPts || (find(growing_points.begin(), growing_points.end(), sid) != growing_points.end()));
 				//repeats the do while loop if it is not a core point or the point has already been selected as a growing point
@@ -181,7 +188,7 @@ namespace NWUClustering
 				//dbs.m_corepoint
 			}
 			
-				
+			//cout << "made it to the barrier" << endl;	
 			#pragma omp barrier // all threads will stop here until every thread has reached this point
 
 
@@ -189,10 +196,11 @@ namespace NWUClustering
 			{
 				
 				dbs.m_corepoint[i] = 1;
-				test += 1;
+				//test += 1;
 				pid = growing_points[i];
 				ne.clear();
             	dbs.m_kdtree->r_nearest_around_point(pid, 0, dbs.m_epsSquare, ne); // gets nearest neighbors
+            	test += 1;
             		
 				dbs.m_member[pid] = 1; // mark as a member
 				// get the root containing pid
@@ -201,6 +209,8 @@ namespace NWUClustering
 				{
 					//this loop goes through all of nearest neighbors of a point
 					npid= ne[j].idx; // gets index of ne[j]
+					if(npid == pid)
+						continue;
 					//cout << "prID: " << prID[npid] << " tid: " << tid << endl;
 					if(prID[npid] != tid) // this checks to see if the two points are in the same thread. If not, add them to merge
 					{
@@ -213,6 +223,7 @@ namespace NWUClustering
 					root2 = root;
 
 					dbs.m_kdtree->r_nearest_around_point(npid, 0, dbs.m_epsSquare, ne2);
+					test += 1;
 							
 					if(ne2.size() >= dbs.m_minPts)
 					{
@@ -310,7 +321,7 @@ namespace NWUClustering
 			} // end of for loop that goes through each point
 		}
 			
-		int v1, v2, size;
+		int v1, v2, size, test2 = 0;
 		kdtree2_result_vector ne3;
 		// merge the trees that have not been merged yet
 		double stop = omp_get_wtime() ;
@@ -324,7 +335,7 @@ namespace NWUClustering
 		#pragma omp parallel for private(i) shared(nlocks)
     		for(i = 0; i < dbs.m_pts->m_i_num_points; i++) 
       			omp_init_lock(&nlocks[i]); // initialize locks
-		#pragma omp parallel for shared(maxthreads, merge, nlocks) private(i, v1, v2, root1, root2, size, tid, ne3) // allows for the spawned threads to split up the loop iterations
+		#pragma omp parallel for shared(maxthreads, merge, nlocks, test2) private(i, v1, v2, root1, root2, size, tid, ne3) // allows for the spawned threads to split up the loop iterations
 		for(tid = 0; tid < maxthreads; tid++)
 		{
 			size = merge[tid].size()/2;
@@ -335,6 +346,7 @@ namespace NWUClustering
 				int con = 0;
 
 				dbs.m_kdtree->r_nearest_around_point(v2, 0, dbs.m_epsSquare, ne3);
+				test2 += 1;
 				
 				if(ne3.size() >= dbs.m_minPts)
 					con = 1;
@@ -406,7 +418,9 @@ namespace NWUClustering
 					
 		stop = omp_get_wtime();
 		free(nlocks);
+		//cout << "Merging neighborhood searches: " << test2 << endl;
 		cout << "Merging took " << stop - start << " seconds."<< endl;
+		//cout << "Number of Neighborhood searches: " << test << endl;
 		//	ofstream output;
 		//	output.open("bestrun.txt")
 		//	current_time = start_total - stop_total;
